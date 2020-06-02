@@ -1,2 +1,2 @@
 # Snake-Game
-A lame Snake Game
+Implemenetation of a simple snake game in c++
