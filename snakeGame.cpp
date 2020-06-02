@@ -4,19 +4,6 @@
 #include<cstdlib>
 using namespace std;
 
-//Implementation of getch()
-char getch() {
-    struct termios oldattr, newattr;
-    tcgetattr(0, &oldattr); //grab old terminal i/o settings
-    newattr = oldattr; //make new settings same as old settings
-    newattr.c_lflag &= ~ICANON; //disable buffered i/o
-    newattr.c_lflag &= ~ECHO; //disable echo mode
-    tcsetattr(0, TCSANOW, &newattr); //apply terminal io settings
-    char ch = getchar();
-    tcsetattr(0, TCSANOW, &oldattr);
-    return ch;
-}
-
 bool gameOver;
 const int width=40;
 const int height=20;
@@ -151,7 +138,7 @@ void Logic()
 int get_direction() {
 	int direction = 0;
 	for(int i=0;i<3;i++) {
-		direction = getch();
+		direction = getchar();
 		if(direction!=27 && direction!=91 && (direction<65 || direction>68))
 			return direction;
 	}
@@ -162,11 +149,18 @@ int main()
 {
 	srand(time(NULL));
 	Setup();
+	struct termios oldattr, newattr;
+    tcgetattr(0, &oldattr); //grab old terminal i/o settings
+    newattr = oldattr; //make new settings same as old settings
+    newattr.c_lflag &= ~ICANON; //disable buffered i/o
+    newattr.c_lflag &= ~ECHO; //disable echo mode
+    tcsetattr(0, TCSANOW, &newattr); //apply terminal i/o settings
 	while(!gameOver)
 	{
 		Draw();
 		Input();
 		Logic();
 	}
+	tcsetattr(0, TCSANOW, &oldattr);//apply old terminal i/o settings
 	return 0;
 }
