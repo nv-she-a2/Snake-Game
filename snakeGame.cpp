@@ -1,27 +1,35 @@
+//
+//  SnakeGame
+//
+//  Created by Anvesha Barnwal on 21/06/20.
+//  Copyright © 2020 Anvesha Barnwal. All rights reserved.
+//
+
 #include<iostream>
-#include <unistd.h>
-#include <termios.h>
 #include<cstdlib>
+#include<vector>
+#include"conio.h"
 using namespace std;
 
 bool gameOver;
 const int width=40;
 const int height=20;
-int x,y,fruitx,fruity,score;
-int tailX[100],tailY[100],nTail=0;
+int fruitx, fruity, score,nTail,speed=500000;
+vector<int> tailX,tailY;
 enum eDirection { STOP=0, LEFT, RIGHT, UP, DOWN};
-eDirection dir,prevDir=RIGHT;
+eDirection dir;
 
 int get_direction();
 
 void Setup()
 {
-	gameOver=false;
-	dir= STOP;
-	x=width/2;
-	y=height/2;
-	fruitx=rand()%width;
-	fruity=rand()%height;
+	gameOver = false;
+	dir = RIGHT;
+	tailX.push_back(width/2);
+	tailY.push_back(height/2);
+    nTail++;
+	fruitx=rand()%(width-1)+1;
+    fruity=rand()%(height-1)+1;
 	score=0;
 }
 
@@ -34,12 +42,10 @@ void Draw()
 	cout<<endl;
 	for(int i=0;i<height;i++)
 	{
-		for(int j=0;j<width;j++)
+		for(int j=0;j<=width;j++)
 		{
-			if(j==0 || j==width-1)
+			if(j==0 || j==width)
 				cout<<"#";
-			if(i==y && j==x)
-				cout<<"O";
 			else if(i==fruity && j==fruitx)
 				cout<<"F";
 			else
@@ -91,44 +97,47 @@ void Input()
 
 void Logic()
 {
-	int prevX=x,prevY=y;
+	int prevX=tailX[0],prevY=tailY[0];
 	switch(dir)
 	{
 		case LEFT:
-			x--;
+			tailX[0]--;
 			break;
 		case RIGHT:
-			x++;
+			tailX[0]++;
 			break;
 		case UP:
-			y--;
+			tailY[0]--;
 			break;
 		case DOWN:
-			y++;
+			tailY[0]++;
 			break;
 		default:
 			break;
 	}
-	if(x==-1 || x==width-1 || y==-1 || y==height)
+	if(tailX[0]==0 || tailX[0]==width || tailY[0]==0 || tailY[0]==height)
 		gameOver=true;
-	if(x==fruitx && y==fruity)
+	if(tailX[0]==fruitx && tailY[0]==fruity)
 	{
 		score+=10;
+		tailX.push_back(tailX[nTail-1]);
+		tailY.push_back(tailY[nTail-1]);
 		nTail++;
-		fruitx=rand()%(width-1);
-		fruity=rand()%height;
+        speed-=100;
+		fruitx=rand()%(width-1)+1;
+		fruity=rand()%(height-1)+1;
 	}
-	for(int i=0;i<nTail;i++)
+	for(int i=1;i<nTail;i++)
 	{
 		int tempX=tailX[i],tempY=tailY[i];
 		tailX[i]=prevX;
 		tailY[i]=prevY;
-		if(x==tailX[i] && y==tailY[i])
+		if(tailX[0]==tailX[i] && tailY[0]==tailY[i])
 			gameOver=true;
 		if(fruitx==tailX[i] && fruity==tailY[i])
 		{
-			fruitx=rand()%(width-1);
-			fruity=rand()%height;
+			fruitx=rand()%(width-1)+1;
+            fruity=rand()%(height-1)+1;
 		}
 		prevX=tempX;
 		prevY=tempY;
@@ -148,19 +157,18 @@ int get_direction() {
 int main()
 {
 	srand(time(NULL));
+    initTermios();
 	Setup();
-	struct termios oldattr, newattr;
-    tcgetattr(0, &oldattr); //grab old terminal i/o settings
-    newattr = oldattr; //make new settings same as old settings
-    newattr.c_lflag &= ~ICANON; //disable buffered i/o
-    newattr.c_lflag &= ~ECHO; //disable echo mode
-    tcsetattr(0, TCSANOW, &newattr); //apply terminal i/o settings
 	while(!gameOver)
 	{
 		Draw();
-		Input();
+		if(kbhit())
+		{
+			Input();
+		}
 		Logic();
+        usleep(speed);
 	}
-	tcsetattr(0, TCSANOW, &oldattr);//apply old terminal i/o settings
+    resetTermios();
 	return 0;
 }
