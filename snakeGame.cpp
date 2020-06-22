@@ -115,7 +115,7 @@ void Logic()
 		default:
 			break;
 	}
-	if(tailX[0]==0 || tailX[0]==width || tailY[0]==0 || tailY[0]==height)
+	if(tailX[0]==0 || tailX[0]==width || tailY[0]==-1 || tailY[0]==height)
 		gameOver=true;
 	if(tailX[0]==fruitx && tailY[0]==fruity)
 	{
@@ -123,7 +123,7 @@ void Logic()
 		tailX.push_back(tailX[nTail-1]);
 		tailY.push_back(tailY[nTail-1]);
 		nTail++;
-        speed-=100;
+        speed-=1000;
 		fruitx=rand()%(width-1)+1;
 		fruity=rand()%(height-1)+1;
 	}
